@@ -37,21 +37,22 @@ def find_https_domain(subdomain):
 
     domain = split_it[1] + "." + split_it[-1] # combining domain and extension
 
-    try:
-        os.system(f"mkdir {domain}-https-subdomains")
-    except:
-        pass
-    #code will only pass if directory already exists
+   
 
-    with open(f"{domain}-https-subdomains/{domain}.subdomains.txt","a+") as file:
+    with open(f"{domain}.subdomains.txt","a+") as file:
     
         try:
 
-            status = requests.get(url)
-            https_subdomains.append(url)
-            file.write(url + ":" + str(status.status_code))
-            MESSAGE = f"[+] Domain found: {url} {status.status_code}"
-            return MESSAGE
+            status = requests.get(url,allow_redirects = False)
+            if status.status_code == 200:
+                https_subdomains.append(url)
+                file.write(url + ":" + str(status.status_code))
+                MESSAGE = f"[+] Domain found: {url} {status.status_code}"
+                return MESSAGE
+            elif status.status_code == 301:
+                print("[+] Detected a redirect...")
+            else:
+                print("[+] Something went wrong...")
         except requests.ConnectionError:
 
             MESSAGE = f"[+] Could noy find http or https for: {url}"
@@ -77,9 +78,15 @@ def find_http_domain(domain):
 
             try:
 
-                status = requests.get(url)
-                http_subdomains.append(url)
-                print("[+] Discovered subdomain:", url, status.status_code)
+                status = requests.get(url,allow_redirects = False)
+
+                if status.status_code == 200:
+                    http_subdomains.append(url)
+                    print("[+] Discovered subdomain:", url, status.status_code)
+                elif status.status_code == 301:
+                    print("[+] Detected a redirect...")
+                else:
+                    print("[+] Something went wrong...")
 
                 file.write(url + ":" + str(status.status_code) + "\n")
 
